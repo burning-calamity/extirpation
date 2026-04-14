@@ -7,6 +7,7 @@ from importlib import util
 from pathlib import Path
 from types import ModuleType
 from typing import Callable, Dict, Iterable, List
+import inspect
 
 
 @dataclass(frozen=True)
@@ -115,3 +116,84 @@ def load_online_modules_with_report(
             errors.append(err)
 
     return LoadReport(modules=modules, errors=errors)
+
+
+def describe_loaded_modules(modules: Dict[str, ModuleType]) -> Dict[str, dict[str, list[str]]]:
+    """Return a simple capability catalog for loaded modules."""
+    catalog: Dict[str, dict[str, list[str]]] = {}
+    for name, module in modules.items():
+        funcs = {
+            fname
+            for fname, obj in vars(module).items()
+            if callable(obj) and not fname.startswith("_") and inspect.isfunction(obj)
+        }
+        entries = {
+            "encrypt": sorted(f for f in funcs if "encrypt" in f),
+            "decrypt": sorted(f for f in funcs if "decrypt" in f),
+            "other": sorted(f for f in funcs if "encrypt" not in f and "decrypt" not in f),
+        }
+        signatures = {
+            fname: str(inspect.signature(getattr(module, fname)))
+            for group in entries.values()
+            for fname in group
+        }
+        catalog[name] = {
+            **entries,
+            "signatures": signatures,
+            "module_doc": (module.__doc__ or "").strip(),
+        }
+    return catalog
+
+
+def invoke_module_function(modules: Dict[str, ModuleType], module_name: str, function_name: str, **kwargs: object) -> object:
+    """Invoke a function from a loaded module by name."""
+    if module_name not in modules:
+        raise KeyError(f"module not loaded: {module_name}")
+    module = modules[module_name]
+    fn = getattr(module, function_name, None)
+    if fn is None or not callable(fn):
+        raise AttributeError(f"function not found: {module_name}.{function_name}")
+    return fn(**kwargs)
+
+
+def module_catalog_stats(catalog: Dict[str, dict[str, list[str]]]) -> dict[str, int]:
+    """Compute simple stats for a module capability catalog."""
+    return {
+        "modules": len(catalog),
+        "encrypt_functions": sum(len(v.get("encrypt", [])) for v in catalog.values()),
+        "decrypt_functions": sum(len(v.get("decrypt", [])) for v in catalog.values()),
+        "other_functions": sum(len(v.get("other", [])) for v in catalog.values()),
+    }
+
+
+def search_catalog(catalog: Dict[str, dict[str, list[str]]], query: str) -> Dict[str, dict[str, list[str]]]:
+    """Filter catalog entries by module/function name substring."""
+    needle = query.strip().lower()
+    if not needle:
+        return dict(catalog)
+
+    matched: Dict[str, dict[str, list[str]]] = {}
+    for module_name, meta in catalog.items():
+        module_hit = needle in module_name.lower()
+        function_hit = any(
+            needle in fn.lower()
+            for group in ("encrypt", "decrypt", "other")
+            for fn in meta.get(group, [])
+        )
+        if module_hit or function_hit:
+            matched[module_name] = meta
+    return matched
+
+
+def validate_module_contracts(catalog: Dict[str, dict[str, list[str]]]) -> Dict[str, list[str]]:
+    """Validate that modules expose at least one encrypt/decrypt function."""
+    issues: Dict[str, list[str]] = {}
+    for name, meta in catalog.items():
+        problems: list[str] = []
+        if not meta.get("encrypt"):
+            problems.append("missing encrypt function")
+        if not meta.get("decrypt"):
+            problems.append("missing decrypt function")
+        if problems:
+            issues[name] = problems
+    return issues
