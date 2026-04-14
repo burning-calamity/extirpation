@@ -1,0 +1,117 @@
+"""Dynamic module loader for Python files inside an `online` folder."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from importlib import util
+from pathlib import Path
+from types import ModuleType
+from typing import Callable, Dict, Iterable, List
+
+
+@dataclass(frozen=True)
+class ModuleLoadError:
+    """Represents a module that could not be imported."""
+
+    module_name: str
+    file_path: Path
+    error: str
+
+
+@dataclass(frozen=True)
+class LoadReport:
+    """Summary of a module loading run."""
+
+    modules: Dict[str, ModuleType]
+    errors: List[ModuleLoadError]
+
+
+ModuleFilter = Callable[[str, Path], bool]
+
+
+def _iter_module_files(online_dir: Path, recursive: bool = False) -> Iterable[Path]:
+    """Yield importable Python module files from a directory."""
+    if not online_dir.exists() or not online_dir.is_dir():
+        return []
+
+    iterator = online_dir.rglob("*.py") if recursive else online_dir.glob("*.py")
+    return sorted(path for path in iterator if path.is_file() and not path.name.startswith("_"))
+
+
+def _name_from_path(base: Path, module_file: Path, recursive: bool) -> str:
+    return ".".join(module_file.relative_to(base).with_suffix("").parts) if recursive else module_file.stem
+
+
+def list_online_modules(
+    online_dir: str | Path = "online",
+    recursive: bool = False,
+    module_filter: ModuleFilter | None = None,
+) -> List[str]:
+    """List available module names without importing them."""
+    base = Path(online_dir).expanduser().resolve()
+    names: list[str] = []
+    for module_file in _iter_module_files(base, recursive=recursive):
+        module_name = _name_from_path(base, module_file, recursive)
+        if module_filter and not module_filter(module_name, module_file):
+            continue
+        names.append(module_name)
+    return names
+
+
+def load_online_modules(
+    online_dir: str | Path = "online",
+    *,
+    recursive: bool = False,
+    strict: bool = False,
+    module_filter: ModuleFilter | None = None,
+    namespace: str = "online_dynamic",
+) -> Dict[str, ModuleType]:
+    """Load every public `.py` module from the provided `online` folder."""
+    report = load_online_modules_with_report(
+        online_dir=online_dir,
+        recursive=recursive,
+        strict=strict,
+        module_filter=module_filter,
+        namespace=namespace,
+    )
+    return report.modules
+
+
+def load_online_modules_with_report(
+    online_dir: str | Path = "online",
+    *,
+    recursive: bool = False,
+    strict: bool = False,
+    module_filter: ModuleFilter | None = None,
+    namespace: str = "online_dynamic",
+) -> LoadReport:
+    """Load modules and return both successful imports and import errors."""
+    base = Path(online_dir).expanduser().resolve()
+    modules: Dict[str, ModuleType] = {}
+    errors: List[ModuleLoadError] = []
+
+    for module_file in _iter_module_files(base, recursive=recursive):
+        module_name = _name_from_path(base, module_file, recursive)
+        if module_filter and not module_filter(module_name, module_file):
+            continue
+
+        import_name = f"{namespace}.{module_name}"
+        spec = util.spec_from_file_location(import_name, module_file)
+        if spec is None or spec.loader is None:
+            err = ModuleLoadError(module_name, module_file, "unable to create import spec")
+            if strict:
+                raise ImportError(f"Failed to load '{module_name}': {err.error}")
+            errors.append(err)
+            continue
+
+        try:
+            module = util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            modules[module_name] = module
+        except Exception as exc:  # noqa: BLE001 - preserve plugin import errors
+            err = ModuleLoadError(module_name, module_file, str(exc))
+            if strict:
+                raise ImportError(f"Failed to load '{module_name}' from {module_file}: {exc}") from exc
+            errors.append(err)
+
+    return LoadReport(modules=modules, errors=errors)
