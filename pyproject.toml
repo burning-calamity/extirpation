@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "extirpation"
-version = "2.5.0"
+version = "2.6.1"
 description = "Auto-load Python modules from an online folder without manual updates"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -40,9 +40,13 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+extirpation = ["bundled_online/*.py"]
 
 [project.scripts]
 extirpation = "extirpation.cli:main"

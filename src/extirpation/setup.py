@@ -18,7 +18,10 @@ class SetupResult:
 
 
 def _default_bundled_online_dir() -> Path:
-    # Repository layout: src/extirpation/setup.py -> ../../online
+    package_bundled = Path(__file__).resolve().parent / "bundled_online"
+    if package_bundled.exists():
+        return package_bundled
+    # Fallback for source-tree layouts.
     return Path(__file__).resolve().parents[2] / "online"
 
 
@@ -60,10 +63,14 @@ def setup(
     bundled_online_dir: str | Path | None = None,
 ) -> SetupResult:
     """Provision bundled modules into `online_dir` and optionally load them."""
+    source_dir = Path(bundled_online_dir).resolve() if bundled_online_dir else _default_bundled_online_dir()
+    if not source_dir.exists() or not source_dir.is_dir():
+        raise FileNotFoundError(f"bundled online module directory not found: {source_dir}")
+
     target_dir, copied, skipped = populate_online_directory(
         online_dir,
         overwrite=overwrite,
-        bundled_online_dir=bundled_online_dir,
+        bundled_online_dir=source_dir,
     )
     report = None
     if load:

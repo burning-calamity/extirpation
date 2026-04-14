@@ -38,6 +38,7 @@ def test_list_modules_contains_expected_entries():
     assert "beaufort" in names
     assert "columnar_transposition" in names
     assert "xor_cipher" in names
+    assert "xor_base64" in names
     assert "polybius" in names
     assert "bifid" in names
     assert "gronsfeld" in names
@@ -59,11 +60,13 @@ def test_list_modules_contains_expected_entries():
     assert "spiral_route" in names
     assert "paired_caesar" in names
     assert "caesar_progressive" in names
+    assert "caesar_autoshift" in names
     assert "mirror_chunks" in names
     assert "hex_cipher" in names
     assert "rot5" in names
     assert "rot13" in names
     assert "reverse_words" in names
+    assert "reverse_caesar" in names
     assert "leetspeak" in names
     assert "word_caesar" in names
     assert "rot18" in names
@@ -118,6 +121,16 @@ def test_setup_provisions_modules(tmp_path):
     assert len(result.copied) > 0
     assert result.report is not None
     assert "caesar" in result.report.modules
+
+
+def test_setup_raises_on_missing_bundled_source(tmp_path):
+    missing = tmp_path / "does_not_exist"
+    try:
+        setup(tmp_path / "target", bundled_online_dir=missing)
+    except FileNotFoundError as exc:
+        assert "bundled online module directory not found" in str(exc)
+    else:
+        raise AssertionError("expected FileNotFoundError")
 
 
 def test_cipher_round_trips():
@@ -224,6 +237,8 @@ def test_cipher_round_trips():
 
     prog = modules["caesar_progressive"].caesar_progressive_encrypt("Attack at dawn!", start_shift=1, step=2)
     assert modules["caesar_progressive"].caesar_progressive_decrypt(prog, start_shift=1, step=2) == "Attack at dawn!"
+    auto = modules["caesar_autoshift"].caesar_autoshift_encrypt("Attack at dawn!", start_shift=2)
+    assert modules["caesar_autoshift"].caesar_autoshift_decrypt(auto, start_shift=2) == "Attack at dawn!"
 
     mirrored = modules["mirror_chunks"].mirror_chunks_encrypt("abcdefghij", chunk_size=4)
     assert modules["mirror_chunks"].mirror_chunks_decrypt(mirrored, chunk_size=4) == "abcdefghij"
@@ -239,6 +254,8 @@ def test_cipher_round_trips():
 
     rw = modules["reverse_words"].reverse_words_encrypt("one two three")
     assert modules["reverse_words"].reverse_words_decrypt(rw) == "one two three"
+    rca = modules["reverse_caesar"].reverse_caesar_encrypt("Attack at dawn", shift=4)
+    assert modules["reverse_caesar"].reverse_caesar_decrypt(rca, shift=4) == "Attack at dawn"
 
     leet = modules["leetspeak"].leetspeak_encrypt("state")
     assert modules["leetspeak"].leetspeak_decrypt(leet) == "STATE"
@@ -295,6 +312,8 @@ def test_cipher_round_trips():
 
     kc = modules["keyword_caesar"].keyword_caesar_encrypt("Attack", keyword="alpha")
     assert modules["keyword_caesar"].keyword_caesar_decrypt(kc, keyword="alpha") == "Attack"
+    xb = modules["xor_base64"].xor_base64_encrypt("hello 🌍", key="secret")
+    assert modules["xor_base64"].xor_base64_decrypt(xb, key="secret") == "hello 🌍"
 
     enigma_cipher = modules["enigma"].enigma_encrypt(
         text="HELLO WORLD",
@@ -336,7 +355,7 @@ def test_cli_list_json_command_with_cache():
 def test_cli_version_command():
     cmd = [sys.executable, "-m", "extirpation.cli", "version"]
     out = subprocess.check_output(cmd, text=True, env=_cli_env()).strip()
-    assert out == "2.5.0"
+    assert out == "2.6.1"
 
 
 def test_cli_catalog_command():

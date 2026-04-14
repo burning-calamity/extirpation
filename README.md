@@ -141,6 +141,8 @@ Provision bundled modules into your target folder:
 extirpation --online-dir online setup
 ```
 
+If you're installed from PyPI, `setup` now provisions modules from package-bundled files.
+
 Export catalog to Markdown:
 ```bash
 extirpation --online-dir online export-catalog --format markdown --output docs/catalog.md
@@ -215,7 +217,7 @@ This repo includes `.github/workflows/publish-pypi.yml` that publishes automatic
 
 ### Release flow
 1. Merge to your default branch.
-2. Create and publish a GitHub Release (for example tag `v2.5.0`).
+2. Create and publish a GitHub Release (for example tag `v2.6.1`).
 3. GitHub Actions runs tests (`ci.yml`), builds distributions, validates them, and publishes to PyPI.
 
 ## Local packaging checks
