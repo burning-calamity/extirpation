@@ -31,10 +31,17 @@ def test_list_modules_contains_expected_entries():
     assert "caesar" in names
     assert "vigenere" in names
     assert "quagmire_iv" in names
+    assert "quagmire_i" in names
+    assert "quagmire_ii" in names
+    assert "quagmire_iii" in names
     assert "rot47" in names
     assert "morse" in names
+    assert "fractionated_morse" in names
     assert "enigma" in names
+    assert "chaocipher" in names
+    assert "jefferson_disk" in names
     assert "autokey" in names
+    assert "amsco_transposition" in names
     assert "beaufort" in names
     assert "columnar_transposition" in names
     assert "xor_cipher" in names
@@ -46,16 +53,23 @@ def test_list_modules_contains_expected_entries():
     assert "trithemius" in names
     assert "scytale" in names
     assert "keyword_substitution" in names
+    assert "myszkowski_transposition" in names
     assert "running_key" in names
     assert "route_cipher" in names
+    assert "route_boustrophedon" in names
+    assert "rot_n" in names
     assert "a1z26" in names
+    assert "adfgvx" in names
+    assert "adfgx" in names
     assert "one_time_pad" in names
     assert "tap_code" in names
+    assert "two_square" in names
     assert "reverse_cipher" in names
     assert "caesar_box" in names
     assert "base64_cipher" in names
     assert "pig_latin" in names
     assert "playfair" in names
+    assert "four_square" in names
     assert "vernam" in names
     assert "spiral_route" in names
     assert "paired_caesar" in names
@@ -79,10 +93,19 @@ def test_list_modules_contains_expected_entries():
     assert "permutation_blocks" in names
     assert "fibonacci_shift" in names
     assert "trinary_cipher" in names
+    assert "trifid" in names
     assert "zigzag_words" in names
     assert "caesar_prime" in names
     assert "base32_cipher" in names
+    assert "nato_phonetic" in names
+    assert "braille_unicode" in names
+    assert "keyboard_shift" in names
     assert "keyword_caesar" in names
+    assert "null_cipher" in names
+    assert "null_cipher_word_mode" in names
+    assert "lfsr_toy" in names
+    assert "feistel_toy" in names
+    assert "spn_toy" in names
 
 
 def test_loader_returns_modules():
@@ -103,7 +126,15 @@ def test_loader_report_and_filter():
         module_filter=lambda name, _: name.startswith("b"),
     )
     assert report.errors == []
-    assert set(report.modules) == {"baconian", "binary_cipher", "beaufort", "bifid", "base64_cipher", "base32_cipher"}
+    assert set(report.modules) == {
+        "baconian",
+        "binary_cipher",
+        "beaufort",
+        "bifid",
+        "base64_cipher",
+        "base32_cipher",
+        "braille_unicode",
+    }
 
 
 def test_cached_loader_report():
@@ -150,6 +181,24 @@ def test_cipher_round_trips():
 
     q = modules["quagmire_iv"].quagmire_iv_encrypt("ATTACK AT DAWN", "ALPHA", "OMEGA", "RIVER")
     assert modules["quagmire_iv"].quagmire_iv_decrypt(q, "ALPHA", "OMEGA", "RIVER") == "ATTACKATDAWN"
+    q1 = modules["quagmire_i"].quagmire_i_encrypt("Attack at dawn", plaintext_keyword="ALPHA", key="RIVER", indicator="D")
+    assert modules["quagmire_i"].quagmire_i_decrypt(q1, plaintext_keyword="ALPHA", key="RIVER", indicator="D") == "Attack at dawn"
+    q2 = modules["quagmire_ii"].quagmire_ii_encrypt("Attack at dawn", ciphertext_keyword="OMEGA", key="RIVER", indicator="D")
+    assert modules["quagmire_ii"].quagmire_ii_decrypt(q2, ciphertext_keyword="OMEGA", key="RIVER", indicator="D") == "Attack at dawn"
+    q3 = modules["quagmire_iii"].quagmire_iii_encrypt(
+        "Attack at dawn",
+        plaintext_keyword="ALPHA",
+        ciphertext_keyword="OMEGA",
+        key="RIVER",
+        indicator="D",
+    )
+    assert modules["quagmire_iii"].quagmire_iii_decrypt(
+        q3,
+        plaintext_keyword="ALPHA",
+        ciphertext_keyword="OMEGA",
+        key="RIVER",
+        indicator="D",
+    ) == "Attack at dawn"
 
     b = modules["baconian"].baconian_encrypt("HELLO")
     assert modules["baconian"].baconian_decrypt(b) == "HELLO"
@@ -168,12 +217,30 @@ def test_cipher_round_trips():
 
     r47 = modules["rot47"].rot47_encrypt("hello")
     assert modules["rot47"].rot47_decrypt(r47) == "hello"
+    chao = modules["chaocipher"].chaocipher_encrypt("WELL DONE IS BETTER THAN WELL SAID")
+    assert modules["chaocipher"].chaocipher_decrypt(chao) == "WELL DONE IS BETTER THAN WELL SAID"
 
     m = modules["morse"].morse_encrypt("SOS 123")
     assert modules["morse"].morse_decrypt(m) == "SOS 123"
+    fm = modules["fractionated_morse"].fractionated_morse_encrypt("ATTACK AT 0900", key="SECRET")
+    assert modules["fractionated_morse"].fractionated_morse_decrypt(fm, key="SECRET") == "ATTACK AT 0900"
+    nc = modules["null_cipher"].null_cipher_encrypt("HIDDEN", filler="Q", step=4)
+    assert modules["null_cipher"].null_cipher_decrypt(nc, step=4) == "HIDDEN"
+    ncw = modules["null_cipher_word_mode"].null_cipher_word_encrypt("hide this message", filler_word="zz", step=3)
+    assert modules["null_cipher_word_mode"].null_cipher_word_decrypt(ncw, step=3) == "hide this message"
+    lfsr = modules["lfsr_toy"].lfsr_toy_encrypt("stream cipher test", seed=0b110101010111)
+    assert modules["lfsr_toy"].lfsr_toy_decrypt(lfsr, seed=0b110101010111) == "stream cipher test"
+    ftl = modules["feistel_toy"].feistel_toy_encrypt("hello feistel", rounds=6, seed=77)
+    assert modules["feistel_toy"].feistel_toy_decrypt(ftl, rounds=6, seed=77) == "hello feistel"
+    spn = modules["spn_toy"].spn_toy_encrypt("hello spn", rounds=5, seed=123)
+    assert modules["spn_toy"].spn_toy_decrypt(spn, rounds=5, seed=123) == "hello spn"
 
     col = modules["columnar_transposition"].columnar_encrypt("WEAREDISCOVERED", "ZEBRA")
     assert modules["columnar_transposition"].columnar_decrypt(col, "ZEBRA") == "WEAREDISCOVERED"
+    ams = modules["amsco_transposition"].amsco_encrypt("WEAREDISCOVEREDFLEEATONCE", key="CARGO")
+    assert modules["amsco_transposition"].amsco_decrypt(ams, key="CARGO") == "WEAREDISCOVEREDFLEEATONCE"
+    mysz = modules["myszkowski_transposition"].myszkowski_encrypt("WEAREDISCOVEREDFLEEATONCE", key="BALLOON")
+    assert modules["myszkowski_transposition"].myszkowski_decrypt(mysz, key="BALLOON") == "WEAREDISCOVEREDFLEEATONCE"
 
     x = modules["xor_cipher"].xor_encrypt("secret message", "key")
     assert modules["xor_cipher"].xor_decrypt(x, "key") == "secret message"
@@ -189,6 +256,8 @@ def test_cipher_round_trips():
 
     tri = modules["trithemius"].trithemius_encrypt("Attack at dawn!")
     assert modules["trithemius"].trithemius_decrypt(tri) == "Attack at dawn!"
+    jef = modules["jefferson_disk"].jefferson_disk_encrypt("Attack at dawn!", wheels=(4, 2, 7))
+    assert modules["jefferson_disk"].jefferson_disk_decrypt(jef, wheels=(4, 2, 7)) == "Attack at dawn!"
 
     scy = modules["scytale"].scytale_encrypt("WEAREDISCOVERED", 4)
     assert modules["scytale"].scytale_decrypt(scy, 4) == "WEAREDISCOVERED"
@@ -201,9 +270,17 @@ def test_cipher_round_trips():
 
     route = modules["route_cipher"].route_encrypt("WEAREDISCOVERED", 5)
     assert modules["route_cipher"].route_decrypt(route, 5) == "WEAREDISCOVERED"
+    rb = modules["route_boustrophedon"].route_boustrophedon_encrypt("WEAREDISCOVEREDFLEEATONCE", columns=6)
+    assert modules["route_boustrophedon"].route_boustrophedon_decrypt(rb, columns=6) == "WEAREDISCOVEREDFLEEATONCE"
+    rn = modules["rot_n"].rot_n_encrypt("Attack at Dawn", n=11)
+    assert modules["rot_n"].rot_n_decrypt(rn, n=11) == "Attack at Dawn"
 
     code = modules["a1z26"].a1z26_encrypt("HELLO")
     assert modules["a1z26"].a1z26_decrypt(code) == "HELLO"
+    adf = modules["adfgvx"].adfgvx_encrypt("ATTACKAT1200", square_keyword="SECRET", transposition_key="CARGO")
+    assert modules["adfgvx"].adfgvx_decrypt(adf, square_keyword="SECRET", transposition_key="CARGO") == "ATTACKAT1200"
+    adfgx = modules["adfgx"].adfgx_encrypt("ATTACKATDAWN", square_keyword="SECRET", transposition_key="CARGO")
+    assert modules["adfgx"].adfgx_decrypt(adfgx, square_keyword="SECRET", transposition_key="CARGO") == "ATTACKATDAWN"
 
     otp = modules["one_time_pad"].otp_encrypt("HELLO", "XMCKL")
     assert modules["one_time_pad"].otp_decrypt(otp, "XMCKL") == "HELLO"
@@ -225,6 +302,10 @@ def test_cipher_round_trips():
 
     pf = modules["playfair"].playfair_encrypt("HIDETHEGOLD", "MONARCHY")
     assert modules["playfair"].playfair_decrypt(pf, "MONARCHY").startswith("HIDETHEGOLD")
+    fs = modules["four_square"].four_square_encrypt("DEFENDTHEEAST", key1="EXAMPLE", key2="KEYWORD")
+    assert modules["four_square"].four_square_decrypt(fs, key1="EXAMPLE", key2="KEYWORD").startswith("DEFENDTHEEAST")
+    ts = modules["two_square"].two_square_encrypt("HELPMEOBIWAN", key1="ALPHA", key2="OMEGA")
+    assert modules["two_square"].two_square_decrypt(ts, key1="ALPHA", key2="OMEGA").startswith("HELPMEOBIWAN")
 
     ve = modules["vernam"].vernam_encrypt("HELLO", "XMCKL")
     assert modules["vernam"].vernam_decrypt(ve, "XMCKL") == "HELLO"
@@ -259,6 +340,12 @@ def test_cipher_round_trips():
 
     leet = modules["leetspeak"].leetspeak_encrypt("state")
     assert modules["leetspeak"].leetspeak_decrypt(leet) == "STATE"
+    nato = modules["nato_phonetic"].nato_phonetic_encrypt("HELLO WORLD")
+    assert modules["nato_phonetic"].nato_phonetic_decrypt(nato) == "HELLO WORLD"
+    bra = modules["braille_unicode"].braille_unicode_encrypt("HELLO")
+    assert modules["braille_unicode"].braille_unicode_decrypt(bra) == "HELLO"
+    kbd = modules["keyboard_shift"].keyboard_shift_encrypt("Attack at Dawn", right=True)
+    assert modules["keyboard_shift"].keyboard_shift_decrypt(kbd, right=True) == "Attack at Dawn"
 
     wc = modules["word_caesar"].word_caesar_encrypt("alpha beta gamma", start_shift=2)
     assert modules["word_caesar"].word_caesar_decrypt(wc, start_shift=2) == "alpha beta gamma"
@@ -300,6 +387,8 @@ def test_cipher_round_trips():
 
     tri = modules["trinary_cipher"].trinary_encrypt("abc")
     assert modules["trinary_cipher"].trinary_decrypt(tri) == "abc"
+    tfd = modules["trifid"].trifid_encrypt("DEFEND THE EAST WALL", key="CIPHER")
+    assert modules["trifid"].trifid_decrypt(tfd, key="CIPHER") == "DEFEND.THE.EAST.WALL"
 
     zig = modules["zigzag_words"].zigzag_words_encrypt("one two three four five")
     assert modules["zigzag_words"].zigzag_words_decrypt(zig) == "one two three four five"
