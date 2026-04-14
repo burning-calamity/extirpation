@@ -27,6 +27,42 @@ jobs:
           python -m build
           python -m twine check dist/*
 
+      - name: Verify version is not already on PyPI
+        run: |
+          python - <<'PY'
+          import pathlib
+          import re
+          import urllib.error
+          import urllib.request
+
+          pyproject = pathlib.Path("pyproject.toml").read_text(encoding="utf-8")
+          name_match = re.search(r'^name\s*=\s*"([^"]+)"', pyproject, re.MULTILINE)
+          version_match = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, re.MULTILINE)
+          if not name_match or not version_match:
+              raise SystemExit('Unable to parse project name/version from pyproject.toml')
+
+          name = name_match.group(1)
+          version = version_match.group(1)
+          url = f"https://pypi.org/pypi/{name}/json"
+
+          try:
+              with urllib.request.urlopen(url, timeout=10) as resp:
+                  payload = resp.read().decode("utf-8")
+          except urllib.error.HTTPError as exc:
+              if exc.code == 404:
+                  print(f"Project {name!r} not found on PyPI yet; version {version} is publishable.")
+                  raise SystemExit(0)
+              raise
+
+          if f'"{version}"' in payload:
+              raise SystemExit(
+                  f"Version {version} for project {name} already exists on PyPI. "
+                  "Bump [project].version in pyproject.toml before publishing."
+              )
+
+          print(f"PyPI does not contain {name}=={version}; publish may proceed.")
+          PY
+
       - name: Set artifact name
         id: meta
         run: echo "artifact_name=python-package-distributions" >> "$GITHUB_OUTPUT"

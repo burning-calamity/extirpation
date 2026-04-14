@@ -262,7 +262,7 @@ This repo includes `.github/workflows/publish-pypi.yml` that publishes automatic
 
 ### Release flow
 1. Merge to your default branch.
-2. Create and publish a GitHub Release (for example tag `v2.6.2`).
+2. Create and publish a GitHub Release (for example tag `v2.6.11`).
 3. GitHub Actions runs tests (`ci.yml`), builds distributions, validates them, and publishes to PyPI.
 
 ## Local packaging checks
