@@ -100,12 +100,31 @@ def test_list_modules_contains_expected_entries():
     assert "nato_phonetic" in names
     assert "braille_unicode" in names
     assert "keyboard_shift" in names
+    assert "general_rot_n_with_custom_alphabet" in names
+    assert "pigpen" in names
     assert "keyword_caesar" in names
     assert "null_cipher" in names
     assert "null_cipher_word_mode" in names
     assert "lfsr_toy" in names
     assert "feistel_toy" in names
     assert "spn_toy" in names
+    assert "nihilist_substitution" in names
+    assert "disrupted_transposition" in names
+    assert "checkerboard_straddling" in names
+    assert "multiplicative_cipher" in names
+    assert "route_diagonal" in names
+    assert "affine_progressive" in names
+    assert "rail_fence_offset" in names
+    assert "transpose_blocks" in names
+    assert "beaufort_autokey" in names
+    assert "rotating_caesar" in names
+    assert "columnar_snake" in names
+    assert "fibonacci_caesar" in names
+    assert "diagonal_zigzag" in names
+    assert "paired_vigenere" in names
+    assert "route_columns_reverse" in names
+    assert "triple_caesar" in names
+    assert "rail_fence_variable" in names
 
 
 def test_loader_returns_modules():
@@ -134,6 +153,7 @@ def test_loader_report_and_filter():
         "base64_cipher",
         "base32_cipher",
         "braille_unicode",
+        "beaufort_autokey",
     }
 
 
@@ -235,6 +255,57 @@ def test_cipher_round_trips():
     spn = modules["spn_toy"].spn_toy_encrypt("hello spn", rounds=5, seed=123)
     assert modules["spn_toy"].spn_toy_decrypt(spn, rounds=5, seed=123) == "hello spn"
 
+    ns = modules["nihilist_substitution"].nihilist_substitution_encrypt("ATTACKATDAWN", square_keyword="ALPHA", key="RIVER")
+    assert modules["nihilist_substitution"].nihilist_substitution_decrypt(ns, square_keyword="ALPHA", key="RIVER") == "ATTACKATDAWN"
+
+    dt = modules["disrupted_transposition"].disrupted_transposition_encrypt("MEETATNOON", "ZEBRA")
+    assert modules["disrupted_transposition"].disrupted_transposition_decrypt(dt, "ZEBRA") == "MEETATNOON"
+
+    cs = modules["checkerboard_straddling"].checkerboard_straddling_encrypt("HIDE MESSAGE", keyword="SECRET")
+    assert modules["checkerboard_straddling"].checkerboard_straddling_decrypt(cs, keyword="SECRET") == "HIDE MESSAGE"
+
+    mc = modules["multiplicative_cipher"].multiplicative_encrypt("Attack at Dawn", key=7)
+    assert modules["multiplicative_cipher"].multiplicative_decrypt(mc, key=7) == "Attack at Dawn"
+
+    rd = modules["route_diagonal"].route_diagonal_encrypt("WEAREDISCOVERED", columns=4, pad="_")
+    assert modules["route_diagonal"].route_diagonal_decrypt(rd, columns=4, pad="_") == "WEAREDISCOVERED"
+
+    ap = modules["affine_progressive"].affine_progressive_encrypt("Attack at Dawn", a=5, b0=3, step=2)
+    assert modules["affine_progressive"].affine_progressive_decrypt(ap, a=5, b0=3, step=2) == "Attack at Dawn"
+
+    rfo = modules["rail_fence_offset"].rail_fence_offset_encrypt("WEAREDISCOVEREDFLEEATONCE", rails=4, start_rail=1)
+    assert modules["rail_fence_offset"].rail_fence_offset_decrypt(rfo, rails=4, start_rail=1) == "WEAREDISCOVEREDFLEEATONCE"
+
+    tb = modules["transpose_blocks"].transpose_blocks_encrypt("MEETATNOON", block_size=5, perm=(2, 0, 4, 1, 3), pad="_")
+    assert modules["transpose_blocks"].transpose_blocks_decrypt(tb, block_size=5, perm=(2, 0, 4, 1, 3), pad="_") == "MEETATNOON"
+
+    ba = modules["beaufort_autokey"].beaufort_autokey_encrypt("Attack at Dawn", key="QUEEN")
+    assert modules["beaufort_autokey"].beaufort_autokey_decrypt(ba, key="QUEEN") == "Attack at Dawn"
+
+    rc = modules["rotating_caesar"].rotating_caesar_encrypt("Attack at Dawn", start_shift=2, step=3)
+    assert modules["rotating_caesar"].rotating_caesar_decrypt(rc, start_shift=2, step=3) == "Attack at Dawn"
+
+    csn = modules["columnar_snake"].columnar_snake_encrypt("WEAREDISCOVERED", key="ZEBRA", pad="_")
+    assert modules["columnar_snake"].columnar_snake_decrypt(csn, key="ZEBRA", pad="_") == "WEAREDISCOVERED"
+
+    fc = modules["fibonacci_caesar"].fibonacci_caesar_encrypt("Attack at Dawn")
+    assert modules["fibonacci_caesar"].fibonacci_caesar_decrypt(fc) == "Attack at Dawn"
+
+    dz = modules["diagonal_zigzag"].diagonal_zigzag_encrypt("WEAREDISCOVERED", width=5, pad="_")
+    assert modules["diagonal_zigzag"].diagonal_zigzag_decrypt(dz, width=5, pad="_") == "WEAREDISCOVERED"
+
+    pv = modules["paired_vigenere"].paired_vigenere_encrypt("Attack at Dawn", key_a="ALPHA", key_b="OMEGA")
+    assert modules["paired_vigenere"].paired_vigenere_decrypt(pv, key_a="ALPHA", key_b="OMEGA") == "Attack at Dawn"
+
+    rcr = modules["route_columns_reverse"].route_columns_reverse_encrypt("WEAREDISCOVERED", columns=4, pad="_")
+    assert modules["route_columns_reverse"].route_columns_reverse_decrypt(rcr, columns=4, pad="_") == "WEAREDISCOVERED"
+
+    tc = modules["triple_caesar"].triple_caesar_encrypt("Attack at Dawn", s1=2, s2=5, s3=9)
+    assert modules["triple_caesar"].triple_caesar_decrypt(tc, s1=2, s2=5, s3=9) == "Attack at Dawn"
+
+    rfv = modules["rail_fence_variable"].rail_fence_variable_encrypt("WEAREDISCOVEREDFLEEATONCE", rails=4, schedule=(0,1,2,3,2,1))
+    assert modules["rail_fence_variable"].rail_fence_variable_decrypt(rfv, rails=4, schedule=(0,1,2,3,2,1)) == "WEAREDISCOVEREDFLEEATONCE"
+
     col = modules["columnar_transposition"].columnar_encrypt("WEAREDISCOVERED", "ZEBRA")
     assert modules["columnar_transposition"].columnar_decrypt(col, "ZEBRA") == "WEAREDISCOVERED"
     ams = modules["amsco_transposition"].amsco_encrypt("WEAREDISCOVEREDFLEEATONCE", key="CARGO")
@@ -274,6 +345,8 @@ def test_cipher_round_trips():
     assert modules["route_boustrophedon"].route_boustrophedon_decrypt(rb, columns=6) == "WEAREDISCOVEREDFLEEATONCE"
     rn = modules["rot_n"].rot_n_encrypt("Attack at Dawn", n=11)
     assert modules["rot_n"].rot_n_decrypt(rn, n=11) == "Attack at Dawn"
+    grot = modules["general_rot_n_with_custom_alphabet"].general_rot_encrypt("ABCD-123", n=5, alphabet="ABCD1234")
+    assert modules["general_rot_n_with_custom_alphabet"].general_rot_decrypt(grot, n=5, alphabet="ABCD1234") == "ABCD-123"
 
     code = modules["a1z26"].a1z26_encrypt("HELLO")
     assert modules["a1z26"].a1z26_decrypt(code) == "HELLO"
@@ -340,6 +413,8 @@ def test_cipher_round_trips():
 
     leet = modules["leetspeak"].leetspeak_encrypt("state")
     assert modules["leetspeak"].leetspeak_decrypt(leet) == "STATE"
+    pigp = modules["pigpen"].pigpen_encrypt("HELLO")
+    assert modules["pigpen"].pigpen_decrypt(pigp) == "HELLO"
     nato = modules["nato_phonetic"].nato_phonetic_encrypt("HELLO WORLD")
     assert modules["nato_phonetic"].nato_phonetic_decrypt(nato) == "HELLO WORLD"
     bra = modules["braille_unicode"].braille_unicode_encrypt("HELLO")
@@ -444,7 +519,7 @@ def test_cli_list_json_command_with_cache():
 def test_cli_version_command():
     cmd = [sys.executable, "-m", "extirpation.cli", "version"]
     out = subprocess.check_output(cmd, text=True, env=_cli_env()).strip()
-    assert out == "2.6.1"
+    assert out == "2.6.2"
 
 
 def test_cli_catalog_command():

@@ -18,7 +18,7 @@ from .online_loader import (
 )
 from .setup import SetupResult, populate_online_directory, setup
 
-__version__ = "2.6.1"
+__version__ = "2.6.2"
 
 __all__ = [
     "load_online_modules",
