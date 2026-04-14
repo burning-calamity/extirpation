@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
 from importlib import util
 from pathlib import Path
 from types import ModuleType
@@ -28,6 +29,8 @@ class LoadReport:
 
 
 ModuleFilter = Callable[[str, Path], bool]
+_REPORT_CACHE: dict[tuple[str, bool, str], tuple[tuple[tuple[str, int, int], ...], LoadReport]] = {}
+_LIST_CACHE: dict[tuple[str, bool], tuple[tuple[tuple[str, int, int], ...], list[str]]] = {}
 
 
 def _iter_module_files(online_dir: Path, recursive: bool = False) -> Iterable[Path]:
@@ -59,6 +62,28 @@ def list_online_modules(
     return names
 
 
+def list_online_modules_cached(
+    online_dir: str | Path = "online",
+    recursive: bool = False,
+    module_filter: ModuleFilter | None = None,
+) -> List[str]:
+    """List available module names with lightweight in-memory caching."""
+    if module_filter is not None:
+        return list_online_modules(online_dir, recursive=recursive, module_filter=module_filter)
+
+    base = Path(online_dir).expanduser().resolve()
+    module_files = list(_iter_module_files(base, recursive=recursive))
+    fingerprint = _files_fingerprint(module_files)
+    key = (str(base), recursive)
+    cached = _LIST_CACHE.get(key)
+    if cached and cached[0] == fingerprint:
+        return list(cached[1])
+
+    names = [_name_from_path(base, p, recursive) for p in module_files]
+    _LIST_CACHE[key] = (fingerprint, list(names))
+    return names
+
+
 def load_online_modules(
     online_dir: str | Path = "online",
     *,
@@ -66,6 +91,7 @@ def load_online_modules(
     strict: bool = False,
     module_filter: ModuleFilter | None = None,
     namespace: str = "online_dynamic",
+    workers: int = 1,
 ) -> Dict[str, ModuleType]:
     """Load every public `.py` module from the provided `online` folder."""
     report = load_online_modules_with_report(
@@ -74,8 +100,66 @@ def load_online_modules(
         strict=strict,
         module_filter=module_filter,
         namespace=namespace,
+        workers=workers,
     )
     return report.modules
+
+
+def clear_online_loader_cache() -> None:
+    """Clear in-memory cached load reports."""
+    _REPORT_CACHE.clear()
+    _LIST_CACHE.clear()
+
+
+def _files_fingerprint(module_files: list[Path]) -> tuple[tuple[str, int, int], ...]:
+    fp: list[tuple[str, int, int]] = []
+    for path in module_files:
+        stat = path.stat()
+        fp.append((str(path), int(stat.st_mtime_ns), stat.st_size))
+    return tuple(fp)
+
+
+def load_online_modules_with_report_cached(
+    online_dir: str | Path = "online",
+    *,
+    recursive: bool = False,
+    strict: bool = False,
+    module_filter: ModuleFilter | None = None,
+    namespace: str = "online_dynamic",
+    workers: int = 1,
+) -> LoadReport:
+    """Load modules using an in-memory cache keyed by directory/fingerprint."""
+    if strict:
+        return load_online_modules_with_report(
+            online_dir=online_dir,
+            recursive=recursive,
+            strict=strict,
+            module_filter=module_filter,
+            namespace=namespace,
+            workers=workers,
+        )
+
+    base = Path(online_dir).expanduser().resolve()
+    module_files = list(_iter_module_files(base, recursive=recursive))
+    if module_filter:
+        module_files = [p for p in module_files if module_filter(_name_from_path(base, p, recursive), p)]
+
+    key = (str(base), recursive, namespace)
+    fingerprint = _files_fingerprint(module_files)
+    cached = _REPORT_CACHE.get(key)
+    if cached and cached[0] == fingerprint:
+        return cached[1]
+
+    report = load_online_modules_with_report(
+        online_dir=online_dir,
+        recursive=recursive,
+        strict=False,
+        module_filter=module_filter,
+        namespace=namespace,
+        workers=workers,
+    )
+    _REPORT_CACHE[key] = (fingerprint, report)
+    return report
 
 
 def load_online_modules_with_report(
@@ -85,35 +169,47 @@ def load_online_modules_with_report(
     strict: bool = False,
     module_filter: ModuleFilter | None = None,
     namespace: str = "online_dynamic",
+    workers: int = 1,
 ) -> LoadReport:
     """Load modules and return both successful imports and import errors."""
     base = Path(online_dir).expanduser().resolve()
     modules: Dict[str, ModuleType] = {}
     errors: List[ModuleLoadError] = []
 
+    candidates: list[tuple[str, Path]] = []
     for module_file in _iter_module_files(base, recursive=recursive):
         module_name = _name_from_path(base, module_file, recursive)
         if module_filter and not module_filter(module_name, module_file):
             continue
+        candidates.append((module_name, module_file))
 
+    def _load_candidate(item: tuple[str, Path]) -> tuple[str, ModuleType | None, ModuleLoadError | None]:
+        module_name, module_file = item
         import_name = f"{namespace}.{module_name}"
         spec = util.spec_from_file_location(import_name, module_file)
         if spec is None or spec.loader is None:
-            err = ModuleLoadError(module_name, module_file, "unable to create import spec")
-            if strict:
-                raise ImportError(f"Failed to load '{module_name}': {err.error}")
-            errors.append(err)
-            continue
-
+            return module_name, None, ModuleLoadError(module_name, module_file, "unable to create import spec")
         try:
             module = util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            modules[module_name] = module
+            return module_name, module, None
         except Exception as exc:  # noqa: BLE001 - preserve plugin import errors
-            err = ModuleLoadError(module_name, module_file, str(exc))
+            return module_name, None, ModuleLoadError(module_name, module_file, str(exc))
+
+    if workers <= 1:
+        results = map(_load_candidate, candidates)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            results = executor.map(_load_candidate, candidates)
+
+    for module_name, module, err in results:
+        if err is not None:
             if strict:
-                raise ImportError(f"Failed to load '{module_name}' from {module_file}: {exc}") from exc
+                raise ImportError(f"Failed to load '{module_name}' from {err.file_path}: {err.error}")
             errors.append(err)
+            continue
+        assert module is not None
+        modules[module_name] = module
 
     return LoadReport(modules=modules, errors=errors)
 

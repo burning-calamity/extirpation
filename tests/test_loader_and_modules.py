@@ -3,7 +3,15 @@ import subprocess
 import sys
 import os
 
-from extirpation import list_online_modules, load_online_modules, load_online_modules_with_report
+from extirpation import (
+    clear_online_loader_cache,
+    list_online_modules,
+    list_online_modules_cached,
+    load_online_modules,
+    load_online_modules_with_report,
+    load_online_modules_with_report_cached,
+    setup,
+)
 
 
 ONLINE_DIR = Path(__file__).resolve().parents[1] / "online"
@@ -63,12 +71,27 @@ def test_list_modules_contains_expected_entries():
     assert "vowel_shift" in names
     assert "hill_cipher" in names
     assert "double_transposition" in names
+    assert "substitution_monoalpha" in names
+    assert "polyalpha_cycle" in names
+    assert "permutation_blocks" in names
+    assert "fibonacci_shift" in names
+    assert "trinary_cipher" in names
+    assert "zigzag_words" in names
+    assert "caesar_prime" in names
+    assert "base32_cipher" in names
+    assert "keyword_caesar" in names
 
 
 def test_loader_returns_modules():
-    modules = load_online_modules(ONLINE_DIR)
+    modules = load_online_modules(ONLINE_DIR, workers=4)
     assert "caesar" in modules
     assert modules["caesar"].caesar_encrypt("ABC", 3) == "DEF"
+
+
+def test_cached_list_modules():
+    first = list_online_modules_cached(ONLINE_DIR)
+    second = list_online_modules_cached(ONLINE_DIR)
+    assert first == second
 
 
 def test_loader_report_and_filter():
@@ -77,7 +100,24 @@ def test_loader_report_and_filter():
         module_filter=lambda name, _: name.startswith("b"),
     )
     assert report.errors == []
-    assert set(report.modules) == {"baconian", "binary_cipher", "beaufort", "bifid", "base64_cipher"}
+    assert set(report.modules) == {"baconian", "binary_cipher", "beaufort", "bifid", "base64_cipher", "base32_cipher"}
+
+
+def test_cached_loader_report():
+    clear_online_loader_cache()
+    first = load_online_modules_with_report_cached(ONLINE_DIR)
+    second = load_online_modules_with_report_cached(ONLINE_DIR)
+    assert first.modules.keys() == second.modules.keys()
+    assert first.errors == second.errors
+
+
+def test_setup_provisions_modules(tmp_path):
+    target = tmp_path / "seeded_online"
+    result = setup(target, load=True)
+    assert result.target_dir == target.resolve()
+    assert len(result.copied) > 0
+    assert result.report is not None
+    assert "caesar" in result.report.modules
 
 
 def test_cipher_round_trips():
@@ -229,6 +269,33 @@ def test_cipher_round_trips():
         key2="CIPHER",
     ) == "WEAREDISCOVEREDFLEEATONCE"
 
+    sub = modules["substitution_monoalpha"].substitution_encrypt("Attack At Dawn")
+    assert modules["substitution_monoalpha"].substitution_decrypt(sub) == "Attack At Dawn"
+
+    pac = modules["polyalpha_cycle"].polyalpha_cycle_encrypt("Attack at dawn!", shifts=(1, 2, 3))
+    assert modules["polyalpha_cycle"].polyalpha_cycle_decrypt(pac, shifts=(1, 2, 3)) == "Attack at dawn!"
+
+    pb = modules["permutation_blocks"].permutation_blocks_encrypt("ABCDEFGHIJKL", perm=(2, 0, 3, 1))
+    assert modules["permutation_blocks"].permutation_blocks_decrypt(pb, perm=(2, 0, 3, 1)) == "ABCDEFGHIJKL"
+
+    fib = modules["fibonacci_shift"].fibonacci_shift_encrypt("Attack at dawn", seed_shift=2)
+    assert modules["fibonacci_shift"].fibonacci_shift_decrypt(fib, seed_shift=2) == "Attack at dawn"
+
+    tri = modules["trinary_cipher"].trinary_encrypt("abc")
+    assert modules["trinary_cipher"].trinary_decrypt(tri) == "abc"
+
+    zig = modules["zigzag_words"].zigzag_words_encrypt("one two three four five")
+    assert modules["zigzag_words"].zigzag_words_decrypt(zig) == "one two three four five"
+
+    cp = modules["caesar_prime"].caesar_prime_encrypt("Attack at dawn", base_shift=1)
+    assert modules["caesar_prime"].caesar_prime_decrypt(cp, base_shift=1) == "Attack at dawn"
+
+    b32 = modules["base32_cipher"].base32_encrypt("hello")
+    assert modules["base32_cipher"].base32_decrypt(b32) == "hello"
+
+    kc = modules["keyword_caesar"].keyword_caesar_encrypt("Attack", keyword="alpha")
+    assert modules["keyword_caesar"].keyword_caesar_decrypt(kc, keyword="alpha") == "Attack"
+
     enigma_cipher = modules["enigma"].enigma_encrypt(
         text="HELLO WORLD",
         rotors=("I", "II", "III"),
@@ -254,10 +321,22 @@ def test_cli_list_command():
     assert "caesar" in out
 
 
+def test_cli_list_json_command():
+    cmd = [sys.executable, "-m", "extirpation.cli", "--online-dir", str(ONLINE_DIR), "list", "--json"]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "\"caesar\"" in out
+
+
+def test_cli_list_json_command_with_cache():
+    cmd = [sys.executable, "-m", "extirpation.cli", "--online-dir", str(ONLINE_DIR), "--cache", "list", "--json"]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "\"caesar\"" in out
+
+
 def test_cli_version_command():
     cmd = [sys.executable, "-m", "extirpation.cli", "version"]
     out = subprocess.check_output(cmd, text=True, env=_cli_env()).strip()
-    assert out == "1.7.0"
+    assert out == "2.5.0"
 
 
 def test_cli_catalog_command():
@@ -280,6 +359,100 @@ def test_cli_find_command():
     ]
     out = subprocess.check_output(cmd, text=True, env=_cli_env())
     assert "caesar_progressive" in out
+
+
+def test_cli_inspect_command():
+    cmd = [
+        sys.executable,
+        "-m",
+        "extirpation.cli",
+        "--online-dir",
+        str(ONLINE_DIR),
+        "inspect",
+        "--module",
+        "caesar",
+    ]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "caesar_encrypt" in out
+
+
+def test_cli_invoke_batch_command():
+    cmd = [
+        sys.executable,
+        "-m",
+        "extirpation.cli",
+        "--online-dir",
+        str(ONLINE_DIR),
+        "invoke-batch",
+        "--calls",
+        '[{"module":"caesar","function":"caesar_encrypt","kwargs":{"plaintext":"ABC","shift":3}}]',
+    ]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "\"ok\": true" in out
+    assert "DEF" in out
+
+
+def test_cli_transform_command():
+    cmd = [
+        sys.executable,
+        "-m",
+        "extirpation.cli",
+        "--online-dir",
+        str(ONLINE_DIR),
+        "transform",
+        "--module",
+        "caesar",
+        "--mode",
+        "encrypt",
+        "--text",
+        "ABC",
+        "--params",
+        "{\"shift\":3}",
+    ]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env()).strip()
+    assert out == "DEF"
+
+
+def test_cli_benchmark_command():
+    cmd = [
+        sys.executable,
+        "-m",
+        "extirpation.cli",
+        "--online-dir",
+        str(ONLINE_DIR),
+        "--cache",
+        "benchmark",
+        "--iterations",
+        "2",
+    ]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "avg_ms" in out
+
+
+def test_cli_setup_command(tmp_path):
+    cmd = [
+        sys.executable,
+        "-m",
+        "extirpation.cli",
+        "--online-dir",
+        str(tmp_path / "cli_online"),
+        "setup",
+    ]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "loaded_modules" in out
+
+
+def test_cli_doctor_command():
+    cmd = [sys.executable, "-m", "extirpation.cli", "--online-dir", str(ONLINE_DIR), "doctor"]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env())
+    assert "module_count" in out
+    assert "load_error_count" in out
+
+
+def test_cli_clear_cache_command():
+    cmd = [sys.executable, "-m", "extirpation.cli", "clear-cache"]
+    out = subprocess.check_output(cmd, text=True, env=_cli_env()).strip()
+    assert out == "cache cleared"
 
 
 def test_cli_invoke_command():
