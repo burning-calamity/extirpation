@@ -1,0 +1,56 @@
+# Cipher Backlog
+
+This list tracks candidate ciphers that are not yet implemented in `online/`.
+
+## Priority (next)
+- [x] rot_n (started)
+- [x] adfgvx (started)
+- [x] null_cipher (started)
+- [x] adfgx (started)
+- [x] four_square (started)
+- [x] two_square (started)
+- [x] trifid (started)
+- [x] myszkowski_transposition (started)
+- [x] amsco_transposition (started)
+- [x] quagmire_i (started)
+- [x] quagmire_ii (started)
+- [x] quagmire_iii (started)
+- [x] chaocipher (started)
+- [x] jefferson_disk (started)
+- [x] fractionated_morse (started)
+
+## Additional candidates
+- [x] general_rot_n_with_custom_alphabet (started)
+- [x] nihilist_substitution (started)
+- [x] checkerboard_straddling (started)
+- [x] disrupted_transposition (started)
+- [x] route_boustrophedon (started)
+- [x] pigpen (started)
+- [x] nato_phonetic (started)
+- [x] braille_unicode (started)
+- [x] keyboard_shift (started)
+- [x] null_cipher_word_mode (started)
+- [x] lfsr_toy (started)
+- [x] feistel_toy (started)
+- [x] spn_toy (started)
+
+- [x] multiplicative_cipher (started)
+- [x] route_diagonal (started)
+
+- [x] affine_progressive (started)
+- [x] rail_fence_offset (started)
+
+- [x] transpose_blocks (started)
+- [x] beaufort_autokey (started)
+
+- [x] rotating_caesar (started)
+- [x] columnar_snake (started)
+
+- [x] fibonacci_caesar (started)
+- [x] diagonal_zigzag (started)
+
+- [x] paired_vigenere (started)
+- [x] route_columns_reverse (started)
+
+- [x] triple_caesar (started)
+- [x] rail_fence_variable (started)
