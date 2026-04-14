@@ -1,0 +1,35 @@
+# Cipher Backlog
+
+This list tracks candidate ciphers that are not yet implemented in `online/`.
+
+## Priority (next)
+- [x] rot_n (started)
+- [x] adfgvx (started)
+- [x] null_cipher (started)
+- [x] adfgx (started)
+- [x] four_square (started)
+- [x] two_square (started)
+- [x] trifid (started)
+- [x] myszkowski_transposition (started)
+- [x] amsco_transposition (started)
+- [x] quagmire_i (started)
+- [x] quagmire_ii (started)
+- [x] quagmire_iii (started)
+- [x] chaocipher (started)
+- [x] jefferson_disk (started)
+- [x] fractionated_morse (started)
+
+## Additional candidates
+- [ ] general_rot_n_with_custom_alphabet
+- [ ] nihilist_substitution
+- [ ] checkerboard_straddling
+- [ ] disrupted_transposition
+- [x] route_boustrophedon (started)
+- [ ] pigpen
+- [x] nato_phonetic (started)
+- [x] braille_unicode (started)
+- [x] keyboard_shift (started)
+- [x] null_cipher_word_mode (started)
+- [x] lfsr_toy (started)
+- [x] feistel_toy (started)
+- [x] spn_toy (started)
