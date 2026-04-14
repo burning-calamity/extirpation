@@ -9,7 +9,7 @@ from .online_loader import (
     load_online_modules_with_report,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.5.0"
 
 __all__ = [
     "load_online_modules",

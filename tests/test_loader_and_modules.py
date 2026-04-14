@@ -15,6 +15,11 @@ def test_list_modules_contains_expected_entries():
     assert "quagmire_iv" in names
     assert "rot47" in names
     assert "morse" in names
+    assert "enigma" in names
+    assert "autokey" in names
+    assert "beaufort" in names
+    assert "columnar_transposition" in names
+    assert "xor_cipher" in names
 
 
 def test_loader_returns_modules():
@@ -29,7 +34,7 @@ def test_loader_report_and_filter():
         module_filter=lambda name, _: name.startswith("b"),
     )
     assert report.errors == []
-    assert set(report.modules) == {"baconian", "binary_cipher"}
+    assert set(report.modules) == {"baconian", "binary_cipher", "beaufort"}
 
 
 def test_cipher_round_trips():
@@ -40,6 +45,12 @@ def test_cipher_round_trips():
 
     v = modules["vigenere"].vigenere_encrypt("Attack at dawn!", "LEMON")
     assert modules["vigenere"].vigenere_decrypt(v, "LEMON") == "Attack at dawn!"
+
+    akey = modules["autokey"].autokey_encrypt("Attack at dawn!", "QUEEN")
+    assert modules["autokey"].autokey_decrypt(akey, "QUEEN") == "Attack at dawn!"
+
+    beau = modules["beaufort"].beaufort_encrypt("Attack at dawn!", "FORT")
+    assert modules["beaufort"].beaufort_decrypt(beau, "FORT") == "Attack at dawn!"
 
     q = modules["quagmire_iv"].quagmire_iv_encrypt("ATTACK AT DAWN", "ALPHA", "OMEGA", "RIVER")
     assert modules["quagmire_iv"].quagmire_iv_decrypt(q, "ALPHA", "OMEGA", "RIVER") == "ATTACKATDAWN"
@@ -65,8 +76,38 @@ def test_cipher_round_trips():
     m = modules["morse"].morse_encrypt("SOS 123")
     assert modules["morse"].morse_decrypt(m) == "SOS 123"
 
+    col = modules["columnar_transposition"].columnar_encrypt("WEAREDISCOVERED", "ZEBRA")
+    assert modules["columnar_transposition"].columnar_decrypt(col, "ZEBRA") == "WEAREDISCOVERED"
+
+    x = modules["xor_cipher"].xor_encrypt("secret message", "key")
+    assert modules["xor_cipher"].xor_decrypt(x, "key") == "secret message"
+
+    enigma_cipher = modules["enigma"].enigma_encrypt(
+        text="HELLO WORLD",
+        rotors=("I", "II", "III"),
+        reflector="B",
+        ring_settings=(1, 1, 1),
+        positions="AAA",
+        plugboard_pairs="AV BS CG DL FU HZ IN KM OW RX",
+    )
+    enigma_plain = modules["enigma"].enigma_encrypt(
+        text=enigma_cipher,
+        rotors=("I", "II", "III"),
+        reflector="B",
+        ring_settings=(1, 1, 1),
+        positions="AAA",
+        plugboard_pairs="AV BS CG DL FU HZ IN KM OW RX",
+    )
+    assert enigma_plain == "HELLO WORLD"
+
 
 def test_cli_list_command():
     cmd = [sys.executable, "-m", "extirpation.cli", "--online-dir", str(ONLINE_DIR), "list"]
     out = subprocess.check_output(cmd, text=True)
     assert "caesar" in out
+
+
+def test_cli_version_command():
+    cmd = [sys.executable, "-m", "extirpation.cli", "version"]
+    out = subprocess.check_output(cmd, text=True).strip()
+    assert out == "0.5.0"
