@@ -20,17 +20,33 @@ pip install -e .[dev]
 ```
 
 ## Python API
+### Quick start (new users)
+```python
+from extirpation import quick_transform
+
+ciphertext = quick_transform("caesar", "encrypt", "HELLO", params={"shift": 3})
+plaintext = quick_transform("caesar", "decrypt", ciphertext, params={"shift": 3})
+print(ciphertext, plaintext)  # KHOOR HELLO
+```
+
+The first call auto-provisions bundled modules into `./online` if needed, then runs the matching cipher function.
+
+### Full API
 ```python
 from extirpation import (
+    ensure_online_modules,
     list_online_modules,
     load_online_modules,
     load_online_modules_with_report,
+    quick_transform,
     setup,
 )
 
+modules = ensure_online_modules("online")
+print(quick_transform("caesar", "encrypt", "HELLO", params={"shift": 3}))
 print(list_online_modules("online"))
 modules = load_online_modules("online")
-print(modules["caesar"].caesar_encrypt("HELLO", shift=3))
+print(modules["caesar"].encrypt("HELLO", shift=3))
 
 report = load_online_modules_with_report("online", recursive=True)
 print(report.modules.keys())

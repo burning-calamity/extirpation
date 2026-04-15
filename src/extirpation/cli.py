@@ -23,6 +23,7 @@ from .online_loader import (
     validate_module_contracts,
 )
 from .setup import setup as setup_online
+from .key_autoguesser import autoguess_keys
 
 TEMPLATE = '''"""{title} module."""
 
@@ -89,6 +90,11 @@ def _build_parser() -> argparse.ArgumentParser:
     transform_parser.add_argument("--mode", choices=["encrypt", "decrypt"], required=True)
     transform_parser.add_argument("--text", required=True, help="Input text")
     transform_parser.add_argument("--params", default="{}", help="Extra JSON kwargs for the selected function")
+    autoguess_parser = subparsers.add_parser("autoguess-key", help="Attempt key autoguessing for supported ciphers")
+    autoguess_parser.add_argument("--cipher", required=True, help="Cipher name, e.g. caesar")
+    autoguess_parser.add_argument("--ciphertext", required=True, help="Ciphertext to analyze")
+    autoguess_parser.add_argument("--top", type=int, default=5, help="Number of top guesses to return")
+    autoguess_parser.add_argument("--wordlist-dir", default=None, help="Optional override for wordlist directory")
 
     scaffold_parser = subparsers.add_parser("scaffold", help="Create a new module template in online-dir")
     scaffold_parser.add_argument("name", help="New module name, e.g. my_cipher")
@@ -322,6 +328,33 @@ def main() -> int:
         kwargs = _inject_text_argument(fn, args.text, params)
         result = fn(**kwargs)
         print(result)
+        return 0
+
+    if args.command == "autoguess-key":
+        guesses = autoguess_keys(
+            cipher=args.cipher,
+            ciphertext=args.ciphertext,
+            wordlist_dir=args.wordlist_dir,
+            top_n=args.top,
+        )
+        print(
+            json.dumps(
+                [
+                    {
+                        "cipher": g.cipher,
+                        "key": g.key,
+                        "score": g.score,
+                        "best_language": g.best_language,
+                        "matched_tokens": g.matched_tokens,
+                        "total_tokens": g.total_tokens,
+                        "plaintext": g.plaintext,
+                    }
+                    for g in guesses
+                ],
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     if args.command == "scaffold":

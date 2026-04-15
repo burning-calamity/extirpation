@@ -33,6 +33,33 @@ _REPORT_CACHE: dict[tuple[str, bool, str], tuple[tuple[tuple[str, int, int], ...
 _LIST_CACHE: dict[tuple[str, bool], tuple[tuple[tuple[str, int, int], ...], list[str]]] = {}
 
 
+def _pick_alias_function_name(module: ModuleType, mode: str) -> str | None:
+    suffix = f"_{mode}"
+    candidates = sorted(
+        name
+        for name, obj in vars(module).items()
+        if callable(obj) and not name.startswith("_") and mode in name and inspect.isfunction(obj)
+    )
+    if not candidates:
+        return None
+    for name in candidates:
+        if name.endswith(suffix):
+            return name
+    return candidates[0]
+
+
+def _attach_standard_encrypt_decrypt_aliases(module: ModuleType) -> None:
+    """Attach ``encrypt`` / ``decrypt`` aliases when a module exposes mode-specific names."""
+    if not hasattr(module, "encrypt"):
+        encrypt_name = _pick_alias_function_name(module, "encrypt")
+        if encrypt_name is not None:
+            setattr(module, "encrypt", getattr(module, encrypt_name))
+    if not hasattr(module, "decrypt"):
+        decrypt_name = _pick_alias_function_name(module, "decrypt")
+        if decrypt_name is not None:
+            setattr(module, "decrypt", getattr(module, decrypt_name))
+
+
 def _iter_module_files(online_dir: Path, recursive: bool = False) -> Iterable[Path]:
     """Yield importable Python module files from a directory."""
     if not online_dir.exists() or not online_dir.is_dir():
@@ -192,6 +219,7 @@ def load_online_modules_with_report(
         try:
             module = util.module_from_spec(spec)
             spec.loader.exec_module(module)
+            _attach_standard_encrypt_decrypt_aliases(module)
             return module_name, module, None
         except Exception as exc:  # noqa: BLE001 - preserve plugin import errors
             return module_name, None, ModuleLoadError(module_name, module_file, str(exc))

@@ -17,8 +17,17 @@ from .online_loader import (
     validate_module_contracts,
 )
 from .setup import SetupResult, populate_online_directory, setup
+from .easy import ensure_online_modules, quick_transform
+from .key_autoguesser import (
+    KeyGuess,
+    LanguageScore,
+    autoguess_keys,
+    list_supported_autoguessers,
+    load_language_wordsets,
+    score_plaintext_language_cohesion,
+)
 
-__version__ = "2.6.2"
+__version__ = "2.6.3"
 
 __all__ = [
     "load_online_modules",
@@ -38,5 +47,13 @@ __all__ = [
     "ModuleLoadError",
     "LoadReport",
     "ModuleFilter",
+    "ensure_online_modules",
+    "quick_transform",
+    "KeyGuess",
+    "LanguageScore",
+    "autoguess_keys",
+    "list_supported_autoguessers",
+    "load_language_wordsets",
+    "score_plaintext_language_cohesion",
     "__version__",
 ]
