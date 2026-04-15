@@ -638,7 +638,7 @@ def test_cli_list_json_command_with_cache():
 def test_cli_version_command():
     cmd = [sys.executable, "-m", "extirpation.cli", "version"]
     out = subprocess.check_output(cmd, text=True, env=_cli_env()).strip()
-    assert out == "2.6.3"
+    assert out == "2.6.14"
 
 
 def test_cli_catalog_command():

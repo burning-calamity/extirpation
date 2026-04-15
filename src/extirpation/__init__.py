@@ -27,7 +27,7 @@ from .key_autoguesser import (
     score_plaintext_language_cohesion,
 )
 
-__version__ = "2.6.3"
+__version__ = "2.6.14"
 
 __all__ = [
     "load_online_modules",
