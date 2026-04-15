@@ -2,6 +2,7 @@ from pathlib import Path
 import subprocess
 import sys
 import os
+import re
 
 from extirpation import (
     clear_online_loader_cache,
@@ -633,6 +634,16 @@ def test_cli_list_json_command_with_cache():
     cmd = [sys.executable, "-m", "extirpation.cli", "--online-dir", str(ONLINE_DIR), "--cache", "list", "--json"]
     out = subprocess.check_output(cmd, text=True, env=_cli_env())
     assert "\"caesar\"" in out
+
+
+def test_runtime_version_matches_pyproject():
+    from extirpation import __version__ as runtime_version
+
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    content = pyproject.read_text(encoding="utf-8")
+    match = re.search(r'^version\s*=\s*"([^"]+)"', content, re.MULTILINE)
+    assert match is not None
+    assert match.group(1) == runtime_version
 
 
 def test_cli_version_command():
