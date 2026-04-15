@@ -1,0 +1,95 @@
+# Cipher Backlog
+
+This list tracks candidate ciphers that are not yet implemented in `online/`.
+
+## Priority (next)
+- [x] rot_n (started)
+- [x] adfgvx (started)
+- [x] null_cipher (started)
+- [x] adfgx (started)
+- [x] four_square (started)
+- [x] two_square (started)
+- [x] trifid (started)
+- [x] myszkowski_transposition (started)
+- [x] amsco_transposition (started)
+- [x] quagmire_i (started)
+- [x] quagmire_ii (started)
+- [x] quagmire_iii (started)
+- [x] chaocipher (started)
+- [x] jefferson_disk (started)
+- [x] fractionated_morse (started)
+
+## Additional candidates
+- [x] general_rot_n_with_custom_alphabet (started)
+- [x] nihilist_substitution (started)
+- [x] checkerboard_straddling (started)
+- [x] disrupted_transposition (started)
+- [x] route_boustrophedon (started)
+- [x] pigpen (started)
+- [x] nato_phonetic (started)
+- [x] braille_unicode (started)
+- [x] keyboard_shift (started)
+- [x] null_cipher_word_mode (started)
+- [x] lfsr_toy (started)
+- [x] feistel_toy (started)
+- [x] spn_toy (started)
+
+- [x] multiplicative_cipher (started)
+- [x] route_diagonal (started)
+
+- [x] affine_progressive (started)
+- [x] rail_fence_offset (started)
+
+- [x] transpose_blocks (started)
+- [x] beaufort_autokey (started)
+
+- [x] rotating_caesar (started)
+- [x] columnar_snake (started)
+
+- [x] fibonacci_caesar (started)
+- [x] diagonal_zigzag (started)
+
+- [x] paired_vigenere (started)
+- [x] route_columns_reverse (started)
+
+- [x] triple_caesar (started)
+- [x] rail_fence_variable (started)
+
+- [x] langcheck (started)
+
+- [x] alphabet_filter (started)
+
+## New backlog (next wave)
+- [ ] alberti_cipher_disk
+- [ ] bifid_extended_6x6
+- [ ] triffid_extended_27
+- [ ] homophonic_substitution
+- [ ] grandpre_cipher
+- [ ] nihilist_transposition
+- [ ] vic_checkerboard
+- [ ] hill_cipher_3x3_keyphrase
+- [ ] running_key_book_mode
+- [ ] one_time_pad_stream_mode
+- [ ] enigma_m4_variant
+- [ ] bazeries_cipher
+- [ ] pollux_cipher
+- [ ] cadenus_transposition
+- [ ] grille_cardan
+- [ ] turning_grille
+- [ ] ragbaby_cipher
+- [ ] redifid_variant
+- [ ] autoclave_vigenere_variant
+- [ ] periodic_transposition
+
+## Tooling / quality todos
+- [ ] Add benchmark script for large-text transforms.
+- [ ] Add fuzz tests for all reversible ciphers.
+- [ ] Add static typing pass for `online_loader` and CLI commands.
+- [ ] Add per-module metadata schema validation in CI.
+
+## Implementation process checklist
+- [ ] Add issue/template mapping for each backlog cipher.
+- [ ] Define per-cipher reference test vectors before implementation.
+- [ ] Add round-trip, edge-case, and invalid-parameter tests per module.
+- [ ] Add doc snippets for each new cipher in README/index.
+- [ ] Periodically prune toy ciphers or mark clearly as educational-only.

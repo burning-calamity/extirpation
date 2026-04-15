@@ -1,0 +1,80 @@
+# Language Wordlist Backlog
+
+Tracks language/script additions and data quality improvements for `online/wordlist/`.
+
+## In progress / recently added
+- [x] Latin: English, Spanish, French, German, Italian, Portuguese, Turkish, Swahili, Dutch, Vietnamese, Polish, Romanian, Czech, Slovak, Swedish, Norwegian, Danish, Finnish, Hungarian, Catalan, Indonesian, Malay
+- [x] Cyrillic: Russian, Ukrainian, Bulgarian
+- [x] Arabic: Arabic, Persian, Urdu, Pashto
+- [x] Greek: Greek, Ancient Greek
+- [x] Devanagari: Hindi, Marathi
+- [x] Hebrew: Hebrew, Yiddish
+- [x] Armenian: Armenian
+- [x] Georgian: Georgian
+- [x] Hangul: Korean
+- [x] Bengali: Bengali
+- [x] Thai: Thai
+- [x] Ethiopic: Amharic, Tigrinya
+- [x] Tamil: Tamil
+- [x] Kana: Japanese, Japanese advanced
+- [x] Han: Simplified Chinese, Traditional Chinese
+
+## Next language targets
+- [x] Latin: Dutch
+- [x] Latin: Polish (latin transliteration + native script companion)
+- [x] Latin: Vietnamese
+- [x] Cyrillic: Serbian
+- [x] Cyrillic: Kazakh
+- [x] Greek: Ancient Greek (basic educational set)
+- [x] Arabic script: Persian
+- [x] Arabic script: Urdu
+- [x] Hebrew script: Yiddish
+- [x] Ethiopic: Tigrinya
+- [x] Devanagari: Marathi
+- [x] Tamil script: Sinhala transliteration companion
+- [x] Kana/Kanji mix: Japanese advanced set
+- [x] Han: Simplified Chinese (pinyin + hanzi companion)
+- [x] Han: Traditional Chinese (bopomofo + hanzi companion)
+
+## Data quality / structure tasks
+- [~] Add frequency-ranked lists per language (top 1k/5k).
+- [~] Add thematic packs (tech, geography, daily life).
+- [~] Normalize duplicates and near-duplicates (accent/diacritic variants).
+- [ ] Add language-specific transliteration companion files where useful.
+- [x] Add script-normalization checks in CI for UTF-8 + NFC consistency.
+
+
+## Process checklist
+- [ ] Expand each new language to 500+ high-frequency words.
+- [x] Add script-specific normalization/validation script.
+- [x] Add transliteration companion where needed.
+- [x] Add quick language smoke tests for loader access.
+- [ ] Sync chosen wordlists into bundled package resources.
+
+
+## Phase focus
+- [x] Finish broad European coverage (phase 1).
+- [x] Expand non-European world coverage (phase 2).
+- [x] Add transliteration companions for mixed-script languages.
+
+
+## Transliteration companions
+- [x] Han Simplified → pinyin companion
+- [x] Han Traditional → bopomofo companion
+- [x] Arabic-script packs → latin transliteration companions
+- [x] Hebrew-script Yiddish → latin transliteration companion
+- [x] Cyrillic Kazakh → latin transliteration companion
+
+
+## Recently completed quality steps
+- [x] Added starter `frequency_top_100.txt` files for English, Spanish, and French.
+- [x] Added reusable validator script `tools/wordlist_validate.py` (duplicates/blank lines/NFC checks).
+
+- [x] Added initial thematic packs (EN/ES/FR): technology, geography, daily_life.
+
+- [x] Added near-duplicate scanner `tools/wordlist_near_duplicates.py`.
+- [x] Added near-duplicate allowlist `online/wordlist/NEAR_DUPLICATES_ALLOWLIST.txt` and enabled strict smoke test.
+- [x] Added German starter packs: `frequency_top_100.txt` and thematic files (technology, geography, daily_life).
+- [x] Added Italian starter packs: `frequency_top_100.txt` and thematic files (technology, geography, daily_life).
+- [x] Added Portuguese starter packs: `frequency_top_100.txt` and thematic files (technology, geography, daily_life).
+- [x] Added Dutch starter packs: `frequency_top_100.txt` and thematic files (technology, geography, daily_life).

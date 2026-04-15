@@ -1,0 +1,14 @@
+botschaft
+buchstabe
+chiffre
+code
+geheim
+hallo
+karte
+klar
+nachricht
+schlussel
+sprache
+text
+welt
+wort
