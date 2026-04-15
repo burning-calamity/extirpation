@@ -1,0 +1,10 @@
+czesc
+dom
+miasto
+rzeka
+most
+ksiazka
+szkola
+droga
+dzien
+noc
