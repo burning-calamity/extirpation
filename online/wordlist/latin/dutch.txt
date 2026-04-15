@@ -1,0 +1,10 @@
+hallo
+boek
+stad
+rivier
+brug
+school
+weg
+taal
+dag
+nacht

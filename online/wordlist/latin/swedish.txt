@@ -1,0 +1,10 @@
+hej
+hus
+stad
+flod
+bro
+bok
+skola
+vag
+dag
+natt

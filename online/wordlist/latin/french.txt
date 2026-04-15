@@ -1,0 +1,15 @@
+ami
+bonjour
+cacher
+chiffre
+cle
+code
+ecole
+lettre
+message
+monde
+mot
+python
+secret
+texte
+voix

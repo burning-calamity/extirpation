@@ -1,0 +1,10 @@
+hola
+casa
+ciutat
+riu
+pont
+llibre
+escola
+cami
+dia
+nit
