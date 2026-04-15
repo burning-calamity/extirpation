@@ -1,0 +1,15 @@
+dom
+droga
+drzewo
+drzwi
+jezioro
+jezyk
+ksiazka
+miasto
+most
+morze
+okno
+rzeka
+szkola
+swiatlo
+czas

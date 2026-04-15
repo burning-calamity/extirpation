@@ -1,0 +1,12 @@
+ola
+amigo
+cidade
+estrada
+livro
+tempo
+casa
+dia
+noite
+agua
+fogo
+terra

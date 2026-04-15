@@ -1,0 +1,15 @@
+ablak
+folyo
+hid
+haz
+ido
+iskola
+konyv
+nyelv
+tenger
+varos
+feny
+fa
+kert
+ut
+hegy

@@ -1,0 +1,15 @@
+a_alege
+a_asculta
+a_ajuta
+a_citi
+a_compara
+a_gasi
+a_invata
+a_masura
+a_planifica
+a_scrie
+a_vorbi
+a_vedea
+a_crea
+a_cauta
+a_calatori
