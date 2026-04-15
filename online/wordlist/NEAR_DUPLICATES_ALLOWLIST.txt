@@ -1,0 +1,4 @@
+# Known/accepted near-duplicate fold collisions.
+# Format: <relative-path-from-online/wordlist>|<folded-key>
+arabic/arabic/adjectives.txt|امن
+latin/norwegian/verbs.txt|male

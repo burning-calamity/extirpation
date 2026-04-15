@@ -1,0 +1,10 @@
+helo
+rumah
+kota
+sungai
+jambatan
+buku
+sekolah
+jalan
+siang
+malam
