@@ -1,0 +1,12 @@
+ciao
+amico
+scuola
+strada
+libro
+tempo
+casa
+giorno
+notte
+acqua
+fuoco
+terra
