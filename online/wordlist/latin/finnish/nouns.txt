@@ -1,0 +1,15 @@
+aika
+ikkuna
+joki
+kaupunki
+kirja
+koulu
+kukka
+meri
+metsa
+ovi
+polku
+silta
+tahti
+talo
+valo

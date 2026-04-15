@@ -1,0 +1,10 @@
+ahoj
+dum
+mesto
+reka
+most
+kniha
+skola
+silnice
+den
+noc
