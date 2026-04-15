@@ -148,13 +148,26 @@ Export catalog to Markdown:
 extirpation --online-dir online export-catalog --format markdown --output docs/catalog.md
 ```
 
+## Wordlists
+The repository now includes starter multilingual wordlists under `online/wordlist/`.
+
+- Latin alphabet languages: `online/wordlist/latin/*.txt`
+- Non-Latin languages are grouped by script/alphabet:
+  - Cyrillic: `online/wordlist/cyrillic/*.txt`
+  - Greek: `online/wordlist/greek/*.txt`
+  - Arabic: `online/wordlist/arabic/*.txt`
+  - Devanagari: `online/wordlist/devanagari/*.txt`
+
+All files are UTF-8 and use one word per line.
+
 ## Included modules
-(Alphabetical, 102 modules)
+(Alphabetical, 104 modules)
 - `online/a1z26.py`
 - `online/adfgvx.py`
 - `online/adfgx.py`
 - `online/affine.py`
 - `online/affine_progressive.py`
+- `online/alphabet_filter.py`
 - `online/amsco_transposition.py`
 - `online/atbash.py`
 - `online/autokey.py`
@@ -193,6 +206,7 @@ extirpation --online-dir online export-catalog --format markdown --output docs/c
 - `online/keyboard_shift.py`
 - `online/keyword_caesar.py`
 - `online/keyword_substitution.py`
+- `online/langcheck.py`
 - `online/leetspeak.py`
 - `online/lfsr_toy.py`
 - `online/mirror_chunks.py`

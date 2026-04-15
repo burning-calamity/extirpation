@@ -125,6 +125,8 @@ def test_list_modules_contains_expected_entries():
     assert "route_columns_reverse" in names
     assert "triple_caesar" in names
     assert "rail_fence_variable" in names
+    assert "langcheck" in names
+    assert "alphabet_filter" in names
 
 
 def test_loader_returns_modules():
@@ -305,6 +307,16 @@ def test_cipher_round_trips():
 
     rfv = modules["rail_fence_variable"].rail_fence_variable_encrypt("WEAREDISCOVEREDFLEEATONCE", rails=4, schedule=(0,1,2,3,2,1))
     assert modules["rail_fence_variable"].rail_fence_variable_decrypt(rfv, rails=4, schedule=(0,1,2,3,2,1)) == "WEAREDISCOVEREDFLEEATONCE"
+
+    found, language = modules["langcheck"].langcheck_check("hello", wordlist_dir=ONLINE_DIR / "wordlist")
+    assert found is True and language == "english"
+    payload = modules["langcheck"].langcheck_encrypt("мир", wordlist_dir=ONLINE_DIR / "wordlist")
+    parsed = modules["langcheck"].langcheck_decrypt(payload)
+    assert parsed == (True, "russian")
+
+    mixed = "Hello Привет Γειά σου مرحبا नमस्ते"
+    assert modules["alphabet_filter"].alphabet_filter_encrypt(mixed, alphabet="latin") == "Hello"
+    assert modules["alphabet_filter"].alphabet_filter_encrypt(mixed, alphabet="cyrillic") == "Привет"
 
     col = modules["columnar_transposition"].columnar_encrypt("WEAREDISCOVERED", "ZEBRA")
     assert modules["columnar_transposition"].columnar_decrypt(col, "ZEBRA") == "WEAREDISCOVERED"

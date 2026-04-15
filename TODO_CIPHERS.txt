@@ -54,3 +54,42 @@ This list tracks candidate ciphers that are not yet implemented in `online/`.
 
 - [x] triple_caesar (started)
 - [x] rail_fence_variable (started)
+
+- [x] langcheck (started)
+
+- [x] alphabet_filter (started)
+
+## New backlog (next wave)
+- [ ] alberti_cipher_disk
+- [ ] bifid_extended_6x6
+- [ ] triffid_extended_27
+- [ ] homophonic_substitution
+- [ ] grandpre_cipher
+- [ ] nihilist_transposition
+- [ ] vic_checkerboard
+- [ ] hill_cipher_3x3_keyphrase
+- [ ] running_key_book_mode
+- [ ] one_time_pad_stream_mode
+- [ ] enigma_m4_variant
+- [ ] bazeries_cipher
+- [ ] pollux_cipher
+- [ ] cadenus_transposition
+- [ ] grille_cardan
+- [ ] turning_grille
+- [ ] ragbaby_cipher
+- [ ] redifid_variant
+- [ ] autoclave_vigenere_variant
+- [ ] periodic_transposition
+
+## Tooling / quality todos
+- [ ] Add benchmark script for large-text transforms.
+- [ ] Add fuzz tests for all reversible ciphers.
+- [ ] Add static typing pass for `online_loader` and CLI commands.
+- [ ] Add per-module metadata schema validation in CI.
+
+## Implementation process checklist
+- [ ] Add issue/template mapping for each backlog cipher.
+- [ ] Define per-cipher reference test vectors before implementation.
+- [ ] Add round-trip, edge-case, and invalid-parameter tests per module.
+- [ ] Add doc snippets for each new cipher in README/index.
+- [ ] Periodically prune toy ciphers or mark clearly as educational-only.

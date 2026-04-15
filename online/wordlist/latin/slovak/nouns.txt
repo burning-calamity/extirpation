@@ -1,0 +1,15 @@
+cesta
+cas
+dvere
+jazyk
+kniha
+mesto
+more
+most
+okno
+rieka
+skola
+strom
+svetlo
+zahrada
+hora
