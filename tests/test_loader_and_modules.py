@@ -5,11 +5,13 @@ import os
 
 from extirpation import (
     clear_online_loader_cache,
+    ensure_online_modules,
     list_online_modules,
     list_online_modules_cached,
     load_online_modules,
     load_online_modules_with_report,
     load_online_modules_with_report_cached,
+    quick_transform,
     setup,
 )
 
@@ -127,6 +129,15 @@ def test_list_modules_contains_expected_entries():
     assert "rail_fence_variable" in names
     assert "langcheck" in names
     assert "alphabet_filter" in names
+    assert "alternating_caesar" in names
+    assert "ascii_shift" in names
+    assert "dna_substitution" in names
+    assert "atbash_extended" in names
+    assert "chained_rot" in names
+    assert "hex_xor_stream" in names
+    assert "prime_step_caesar" in names
+    assert "paired_atbash_caesar" in names
+    assert "octal_xor" in names
 
 
 def test_loader_returns_modules():
@@ -186,6 +197,30 @@ def test_setup_raises_on_missing_bundled_source(tmp_path):
         raise AssertionError("expected FileNotFoundError")
 
 
+def test_ensure_online_modules_provisions_and_loads(tmp_path):
+    target = tmp_path / "quick_online"
+    modules = ensure_online_modules(target)
+    assert "caesar" in modules
+    assert modules["caesar"].caesar_encrypt("ABC", 3) == "DEF"
+
+
+def test_quick_transform_encrypt_and_decrypt(tmp_path):
+    target = tmp_path / "quick_online"
+    ciphertext = quick_transform("caesar", "encrypt", "HELLO", params={"shift": 3}, online_dir=target)
+    assert ciphertext == "KHOOR"
+    plaintext = quick_transform("caesar", "decrypt", ciphertext, params={"shift": 3}, online_dir=target)
+    assert plaintext == "HELLO"
+
+
+def test_quick_transform_rejects_bad_mode(tmp_path):
+    try:
+        quick_transform("caesar", "encode", "HELLO", params={"shift": 3}, online_dir=tmp_path / "quick_online")
+    except ValueError as exc:
+        assert "mode must be 'encrypt' or 'decrypt'" in str(exc)
+    else:
+        raise AssertionError("expected ValueError")
+
+
 def test_cipher_round_trips():
     modules = load_online_modules(ONLINE_DIR)
 
@@ -233,6 +268,33 @@ def test_cipher_round_trips():
 
     af = modules["affine"].affine_encrypt("Affine Cipher", 5, 8)
     assert modules["affine"].affine_decrypt(af, 5, 8) == "Affine Cipher"
+
+    ac = modules["alternating_caesar"].alternating_caesar_encrypt("HELLO WORLD", shift=4)
+    assert modules["alternating_caesar"].alternating_caesar_decrypt(ac, shift=4) == "HELLO WORLD"
+
+    shifted = modules["ascii_shift"].ascii_shift_encrypt("Hello, 123!", shift=9)
+    assert modules["ascii_shift"].ascii_shift_decrypt(shifted, shift=9) == "Hello, 123!"
+
+    dna = modules["dna_substitution"].dna_substitution_encrypt("cipher 🔐")
+    assert modules["dna_substitution"].dna_substitution_decrypt(dna) == "cipher 🔐"
+
+    atx = modules["atbash_extended"].atbash_extended_encrypt("Attack at dawn 123")
+    assert modules["atbash_extended"].atbash_extended_decrypt(atx) == "Attack at dawn 123"
+
+    chained = modules["chained_rot"].chained_rot_encrypt("Attack at dawn", base_shift=2)
+    assert modules["chained_rot"].chained_rot_decrypt(chained, base_shift=2) == "Attack at dawn"
+
+    hx = modules["hex_xor_stream"].hex_xor_stream_encrypt("hello world", key="k")
+    assert modules["hex_xor_stream"].hex_xor_stream_decrypt(hx, key="k") == "hello world"
+
+    psc = modules["prime_step_caesar"].prime_step_caesar_encrypt("Attack at dawn")
+    assert modules["prime_step_caesar"].prime_step_caesar_decrypt(psc) == "Attack at dawn"
+
+    pac = modules["paired_atbash_caesar"].paired_atbash_caesar_encrypt("Cipher Text", shift=4)
+    assert modules["paired_atbash_caesar"].paired_atbash_caesar_decrypt(pac, shift=4) == "Cipher Text"
+
+    ox = modules["octal_xor"].octal_xor_encrypt("hello world", key="abc")
+    assert modules["octal_xor"].octal_xor_decrypt(ox, key="abc") == "hello world"
 
     rf = modules["rail_fence"].rail_fence_encrypt("WEAREDISCOVEREDFLEEATONCE", 3)
     assert modules["rail_fence"].rail_fence_decrypt(rf, 3) == "WEAREDISCOVEREDFLEEATONCE"
